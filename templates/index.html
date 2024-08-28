@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Interface</title>
+    <link rel="stylesheet" href="../templates/static/style.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Security Interface</h1>
+        
+        <section>
+            <h2>Encrypt AES</h2>
+            <form id="aes-form">
+                <label for="aes-data">Datos:</label>
+                <input type="text" id="aes-data" name="data" placeholder="Ingrese datos" required>
+                <button type="submit">Encrypt</button>
+            </form>
+            <label for="aes-result">Resultado:</label>
+            <pre id="aes-result"></pre>
+        </section>
+
+        <section>
+            <h2>Encrypt RSA</h2>
+            <form id="rsa-form">
+                <label for="rsa-data">Datos:</label>
+                <input type="text" id="rsa-data" name="data" placeholder="Ingrese datos" required>
+                <button type="submit">Encrypt</button>
+            </form>
+            <label for="rsa-result">Resultado:</label>
+            <pre id="rsa-result"></pre>
+        </section>
+
+        <section>
+            <h2>Hash File</h2>
+            <form id="hash-form" enctype="multipart/form-data">
+                <label for="file">Select file:</label>
+                <input type="file" id="file" name="file" required>
+                <button type="submit">Hash</button>
+            </form>
+            <label for="hash-result">Resultado:</label>
+            <pre id="hash-result"></pre>
+        </section>
+
+        <section>
+            <h2>Analyze Password</h2>
+            <form id="password-form">
+                <label for="password">Password:</label>
+                <input type="text" id="password" name="password" placeholder="Ingrese password" required>
+                <button type="submit">Analisar</button>
+            </form>
+            <label for="password-result">Resultado:</label>
+            <pre id="password-result"></pre>
+        </section>
+    </div>
+
+    <script>
+        $('#aes-form').submit(function(event) {
+            event.preventDefault();
+            $.ajax({
+                url: 'http://127.0.0.1:5000/encrypt_aes',
+                type: 'POST',
+                data: $(this).serialize(),
+                success: function(data) {
+                    console.log('Response:', data); // Añadir esto para ver la respuesta
+                    $('#aes-result').text('Texto Cifrado: ' + data.ciphertext + '\nKey: ' + data.key + '\nTag: ' + data.tag);
+                },
+                error: function(xhr, status, error) {
+                    console.error('Status:', status);
+                    console.error('Error:', error);
+                    console.error('Response:', xhr.responseText);
+                    alert('Error occurred: ' + xhr.responseText);
+                }
+            });
+        });
+
+        $('#rsa-form').submit(function(event) {
+            event.preventDefault();
+            $.ajax({
+                url: 'http://127.0.0.1:5000/encrypt_rsa', // URL correcta para Flask
+                type: 'POST',
+                data: $(this).serialize(),
+                success: function(data) {
+                    $('#rsa-result').text('Texto Cifrado: ' + data.ciphertext + '\nPublic Key: ' + data.public_key + '\nPrivate Key: ' + data.private_key);
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error occurred:', error);
+                    console.error('Response:', xhr.responseText);
+                    alert('Error: ' + xhr.responseText);
+                }
+            });
+        });
+
+        $('#hash-form').submit(function(event) {
+            event.preventDefault();
+            var formData = new FormData($(this)[0]);
+            $.ajax({
+                url: 'http://127.0.0.1:5000/hash_file', // URL correcta para Flask
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(data) {
+                    $('#hash-result').text('SHA-256 Hash: ' + data.sha256);
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error occurred:', error);
+                    console.error('Response:', xhr.responseText);
+                    alert('Error: ' + xhr.responseText);
+                }
+            });
+        });
+
+        $('#password-form').submit(function(event) {
+            event.preventDefault();
+            $.ajax({
+                url: 'http://127.0.0.1:5000/analyze_password', // URL correcta para Flask
+                type: 'POST',
+                data: $(this).serialize(),
+                success: function(data) {
+                    $('#password-result').text('Es Fuerte: ' + data.is_strong);
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error occurred:', error);
+                    console.error('Response:', xhr.responseText);
+                    alert('Error: ' + xhr.responseText);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

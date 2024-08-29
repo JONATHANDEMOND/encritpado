@@ -3,132 +3,371 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Security Interface</title>
-    <link rel="stylesheet" href="../templates/static/style.css">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <title>Análisis de Encriptación y Fuerza de Contraseña</title>
+    <link rel="stylesheet" href="/templates/static/style.css">
 </head>
 <body>
+
+    <h1>Análisis de Encriptación y Fuerza de Contraseña</h1>
+
     <div class="container">
-        <h1>Security Interface</h1>
-        
-        <section>
-            <h2>Encrypt AES</h2>
-            <form id="aes-form">
-                <label for="aes-data">Datos:</label>
-                <input type="text" id="aes-data" name="data" placeholder="Ingrese datos" required>
-                <button type="submit">Encrypt</button>
-            </form>
-            <label for="aes-result">Resultado:</label>
-            <pre id="aes-result"></pre>
-        </section>
+        <h2>Encriptación AES</h2>
+        <input type="file" id="aes-file">
+        <button id="aes-button">Encriptar con AES</button>
+        <button id="aes-decrypt-button">Desencriptar con AES</button>
+        <div id="aes-result" class="result"></div>
+        <h3>Datos para Desencriptar AES</h3>
+        <input type="text" id="aes-key" placeholder="Clave AES (Base64)">
+        <input type="text" id="aes-nonce" placeholder="Nonce AES (Base64)">
+        <input type="text" id="aes-tag" placeholder="Tag AES (Base64)">
+        <textarea id="aes-ciphertext" rows="4" cols="50" placeholder="Texto cifrado AES (Base64)"></textarea>
+    </div>
 
-        <section>
-            <h2>Encrypt RSA</h2>
-            <form id="rsa-form">
-                <label for="rsa-data">Datos:</label>
-                <input type="text" id="rsa-data" name="data" placeholder="Ingrese datos" required>
-                <button type="submit">Encrypt</button>
-            </form>
-            <label for="rsa-result">Resultado:</label>
-            <pre id="rsa-result"></pre>
-        </section>
+    <div class="container">
+        <h2>Encriptación RSA</h2>
+        <input type="file" id="rsa-file">
+        <button id="rsa-button">Encriptar con RSA</button>
+        <button id="rsa-decrypt-button">Desencriptar con RSA</button>
+        <div id="rsa-result" class="result"></div>
+        <h3>Datos para Desencriptar RSA</h3>
+        <input type="text" id="rsa-private-key" placeholder="Clave privada RSA (Base64)">
+        <textarea id="rsa-ciphertext" rows="4" cols="50" placeholder="Texto cifrado RSA (Base64)"></textarea>
+    </div>
 
-        <section>
-            <h2>Hash File</h2>
-            <form id="hash-form" enctype="multipart/form-data">
-                <label for="file">Select file:</label>
-                <input type="file" id="file" name="file" required>
-                <button type="submit">Hash</button>
-            </form>
-            <label for="hash-result">Resultado:</label>
-            <pre id="hash-result"></pre>
-        </section>
+    <div class="container">
+        <h2>Encriptación de Texto con AES</h2>
+        <textarea id="aes-text" rows="4" cols="50" placeholder="Ingrese texto para encriptar"></textarea>
+        <button id="aes-text-button">Encriptar Texto con AES</button>
+        <textarea id="aes-text-dec" rows="4" cols="50" placeholder="Ingrese texto cifrado AES para desencriptar"></textarea>
+        <button id="aes-text-decrypt-button">Desencriptar Texto con AES</button>
+        <div id="aes-text-result" class="result"></div>
+    </div>
 
-        <section>
-            <h2>Analyze Password</h2>
-            <form id="password-form">
-                <label for="password">Password:</label>
-                <input type="text" id="password" name="password" placeholder="Ingrese password" required>
-                <button type="submit">Analisar</button>
-            </form>
-            <label for="password-result">Resultado:</label>
-            <pre id="password-result"></pre>
-        </section>
+    <div class="container">
+        <h2>Encriptación de Texto con RSA</h2>
+        <textarea id="rsa-text" rows="4" cols="50" placeholder="Ingrese texto para encriptar"></textarea>
+        <button id="rsa-text-button">Encriptar Texto con RSA</button>
+        <textarea id="rsa-text-dec" rows="4" cols="50" placeholder="Ingrese texto cifrado RSA para desencriptar"></textarea>
+        <button id="rsa-text-decrypt-button">Desencriptar Texto con RSA</button>
+        <div id="rsa-text-result" class="result"></div>
+    </div>
+
+    <div class="container">
+        <h2>Análisis de Fuerza de Contraseña</h2>
+        <input type="password" id="password" placeholder="Ingrese contraseña">
+        <button id="password-button">Analizar Fuerza de Contraseña</button>
+        <div id="password-result" class="result"></div>
     </div>
 
     <script>
-        $('#aes-form').submit(function(event) {
-            event.preventDefault();
-            $.ajax({
-                url: 'http://127.0.0.1:5000/encrypt_aes',
-                type: 'POST',
-                data: $(this).serialize(),
-                success: function(data) {
-                    console.log('Response:', data); // Añadir esto para ver la respuesta
-                    $('#aes-result').text('Texto Cifrado: ' + data.ciphertext + '\nKey: ' + data.key + '\nTag: ' + data.tag);
-                },
-                error: function(xhr, status, error) {
-                    console.error('Status:', status);
-                    console.error('Error:', error);
-                    console.error('Response:', xhr.responseText);
-                    alert('Error occurred: ' + xhr.responseText);
-                }
-            });
-        });
+        document.getElementById('aes-button').onclick = async function() {
+            await encryptAES();
+        };
 
-        $('#rsa-form').submit(function(event) {
-            event.preventDefault();
-            $.ajax({
-                url: 'http://127.0.0.1:5000/encrypt_rsa', // URL correcta para Flask
-                type: 'POST',
-                data: $(this).serialize(),
-                success: function(data) {
-                    $('#rsa-result').text('Texto Cifrado: ' + data.ciphertext + '\nPublic Key: ' + data.public_key + '\nPrivate Key: ' + data.private_key);
-                },
-                error: function(xhr, status, error) {
-                    console.error('Error occurred:', error);
-                    console.error('Response:', xhr.responseText);
-                    alert('Error: ' + xhr.responseText);
-                }
-            });
-        });
+        document.getElementById('aes-decrypt-button').onclick = async function() {
+            await decryptAES(); // Asegúrate de que esta función esté definida
+        };
 
-        $('#hash-form').submit(function(event) {
-            event.preventDefault();
-            var formData = new FormData($(this)[0]);
-            $.ajax({
-                url: 'http://127.0.0.1:5000/hash_file', // URL correcta para Flask
-                type: 'POST',
-                data: formData,
-                processData: false,
-                contentType: false,
-                success: function(data) {
-                    $('#hash-result').text('SHA-256 Hash: ' + data.sha256);
-                },
-                error: function(xhr, status, error) {
-                    console.error('Error occurred:', error);
-                    console.error('Response:', xhr.responseText);
-                    alert('Error: ' + xhr.responseText);
-                }
-            });
-        });
+        document.getElementById('rsa-button').onclick = async function() {
+            await encryptRSA();
+        };
 
-        $('#password-form').submit(function(event) {
-            event.preventDefault();
-            $.ajax({
-                url: 'http://127.0.0.1:5000/analyze_password', // URL correcta para Flask
-                type: 'POST',
-                data: $(this).serialize(),
-                success: function(data) {
-                    $('#password-result').text('Es Fuerte: ' + data.is_strong);
-                },
-                error: function(xhr, status, error) {
-                    console.error('Error occurred:', error);
-                    console.error('Response:', xhr.responseText);
-                    alert('Error: ' + xhr.responseText);
+        document.getElementById('rsa-decrypt-button').onclick = async function() {
+            await decryptRSA();
+        };
+
+        document.getElementById('aes-text-button').onclick = async function() {
+            await encryptTextAES();
+        };
+
+        document.getElementById('aes-text-decrypt-button').onclick = async function() {
+            await decryptTextAES();
+        };
+
+        document.getElementById('rsa-text-button').onclick = async function() {
+            await encryptTextRSA();
+        };
+
+        document.getElementById('rsa-text-decrypt-button').onclick = async function() {
+            await decryptTextRSA();
+        };
+
+        document.getElementById('password-button').onclick = async function() {
+            await analyzePassword();
+        };
+
+        async function encryptAES() {
+            const fileInput = document.getElementById('aes-file');
+            if (fileInput.files.length === 0) {
+                alert('Por favor, seleccione un archivo.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            try {
+                const response = await fetch('http://127.0.0.1:5000/encrypt_aes', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error(`La respuesta de la red no fue ok, estado: ${response.status}`);
                 }
+
+                const result = await response.json();
+
+                document.getElementById('aes-result').innerHTML = `
+                    <p><strong>Nombre del archivo:</strong> ${result.filename}</p>
+                    <p><strong>Datos Encriptados (Base64):</strong> ${result.ciphertext}</p>
+                    <p><strong>Clave AES (Base64):</strong> ${result.key}</p>
+                    <p><strong>Nonce (Base64):</strong> ${result.nonce}</p>
+                    <p><strong>Tag (Base64):</strong> ${result.tag}</p>
+                `;
+            } catch (error) {
+                document.getElementById('aes-result').innerHTML = `
+                    <p><strong>Error:</strong> ${error.message}</p>
+                `;
+                console.error('¡Hubo un error!', error);
+            }
+        }
+
+        async function decryptTextAES() {
+            const data = {
+                key: document.getElementById('aes-key').value,
+                nonce: document.getElementById('aes-nonce').value,
+                tag: document.getElementById('aes-tag').value,
+                ciphertext: document.getElementById('aes-text-dec').value
+            };
+
+            // Depuración: mostrar el nonce
+            console.log("Nonce enviado para desencriptar texto:", data.nonce);
+
+            if (!data.nonce) {
+                alert("El campo Nonce está vacío. Por favor, ingrese un valor válido.");
+                return;
+            }
+
+            try {
+                const response = await fetch('http://127.0.0.1:5000/decrypt_text_aes', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+
+                    document.getElementById('aes-text-result').innerHTML = `
+                        <p><strong>Texto Desencriptado:</strong> ${result.plaintext}</p>
+                    `;
+                } else {
+                    const result = await response.json();
+                    document.getElementById('aes-text-result').innerHTML = `
+                        <p><strong>Error:</strong> ${result.error}</p>
+                    `;
+                }
+            } catch (error) {
+                document.getElementById('aes-text-result').innerHTML = `
+                    <p><strong>Error:</strong> ${error.message}</p>
+                `;
+                console.error('¡Hubo un error!', error);
+            }
+        }
+
+        async function encryptTextAES() {
+            const text = document.getElementById('aes-text').value;
+            if (!text) {
+                alert('Por favor, ingrese texto.');
+                return;
+            }
+
+            const response = await fetch('http://127.0.0.1:5000/encrypt_text_aes', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ plaintext: text })
             });
-        });
+
+            if (response.ok) {
+                const result = await response.json();
+
+                document.getElementById('aes-text-result').innerHTML = `
+                    <p><strong>Datos Encriptados (Base64):</strong> ${result.ciphertext}</p>
+                    <p><strong>Clave AES (Base64):</strong> ${result.key}</p>
+                    <p><strong>Nonce (Base64):</strong> ${result.nonce}</p>
+                    <p><strong>Tag (Base64):</strong> ${result.tag}</p>
+                `;
+            } else {
+                const result = await response.json();
+                document.getElementById('aes-text-result').innerHTML = `
+                    <p><strong>Error:</strong> ${result.error}</p>
+                `;
+            }
+        }
+
+        async function encryptRSA() {
+            const fileInput = document.getElementById('rsa-file');
+            if (fileInput.files.length === 0) {
+                alert('Por favor, seleccione un archivo.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            try {
+                const response = await fetch('http://127.0.0.1:5000/encrypt_rsa', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error(`La respuesta de la red no fue ok, estado: ${response.status}`);
+                }
+
+                const result = await response.json();
+
+                document.getElementById('rsa-result').innerHTML = `
+                    <p><strong>Nombre del archivo:</strong> ${result.filename}</p>
+                    <p><strong>Datos Encriptados (Base64):</strong> ${result.ciphertext}</p>
+                    <p><strong>Clave pública RSA (Base64):</strong> ${result.public_key}</p>
+                `;
+            } catch (error) {
+                document.getElementById('rsa-result').innerHTML = `
+                    <p><strong>Error:</strong> ${error.message}</p>
+                `;
+                console.error('¡Hubo un error!', error);
+            }
+        }
+
+        async function decryptRSA() {
+            const data = {
+                private_key: document.getElementById('rsa-private-key').value,
+                ciphertext: document.getElementById('rsa-ciphertext').value
+            };
+
+            try {
+                const response = await fetch('http://127.0.0.1:5000/decrypt_rsa', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+
+                    document.getElementById('rsa-result').innerHTML = `
+                        <p><strong>Texto Desencriptado:</strong> ${result.plaintext}</p>
+                    `;
+                } else {
+                    const result = await response.json();
+                    document.getElementById('rsa-result').innerHTML = `
+                        <p><strong>Error:</strong> ${result.error}</p>
+                    `;
+                }
+            } catch (error) {
+                document.getElementById('rsa-result').innerHTML = `
+                    <p><strong>Error:</strong> ${error.message}</p>
+                `;
+                console.error('¡Hubo un error!', error);
+            }
+        }
+
+        async function encryptTextRSA() {
+            const text = document.getElementById('rsa-text').value;
+            if (!text) {
+                alert('Por favor, ingrese texto.');
+                return;
+            }
+
+            const response = await fetch('http://127.0.0.1:5000/encrypt_text_rsa', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ plaintext: text })
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+
+                document.getElementById('rsa-text-result').innerHTML = `
+                    <p><strong>Datos Encriptados (Base64):</strong> ${result.ciphertext}</p>
+                    <p><strong>Clave Pública RSA (Base64):</strong> ${result.public_key}</p>
+                `;
+            } else {
+                const result = await response.json();
+                document.getElementById('rsa-text-result').innerHTML = `
+                    <p><strong>Error:</strong> ${result.error}</p>
+                `;
+            }
+        }
+
+        async function decryptTextRSA() {
+            const data = {
+                private_key: document.getElementById('rsa-private-key').value,
+                ciphertext: document.getElementById('rsa-text-dec').value
+            };
+
+            try {
+                const response = await fetch('http://127.0.0.1:5000/decrypt_text_rsa', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+
+                    document.getElementById('rsa-text-result').innerHTML = `
+                        <p><strong>Texto Desencriptado:</strong> ${result.plaintext}</p>
+                    `;
+                } else {
+                    const result = await response.json();
+                    document.getElementById('rsa-text-result').innerHTML = `
+                        <p><strong>Error:</strong> ${result.error}</p>
+                    `;
+                }
+            } catch (error) {
+                document.getElementById('rsa-text-result').innerHTML = `
+                    <p><strong>Error:</strong> ${error.message}</p>
+                `;
+                console.error('¡Hubo un error!', error);
+            }
+        }
+
+        async function analyzePassword() {
+            const password = document.getElementById('password').value;
+            if (!password) {
+                alert('Por favor, ingrese una contraseña.');
+                return;
+            }
+
+            try {
+                const response = await fetch('http://127.0.0.1:5000/analyze_password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password })
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+
+                    document.getElementById('password-result').innerHTML = `
+                        <p><strong>Fuerza de la Contraseña:</strong> ${result.password_strength}</p>
+                    `;
+                } else {
+                    const result = await response.json();
+                    document.getElementById('password-result').innerHTML = `
+                        <p><strong>Error:</strong> ${result.error}</p>
+                    `;
+                }
+            } catch (error) {
+                document.getElementById('password-result').innerHTML = `
+                    <p><strong>Error:</strong> ${error.message}</p>
+                `;
+                console.error('¡Hubo un error!', error);
+            }
+        }
     </script>
 </body>
 </html>
